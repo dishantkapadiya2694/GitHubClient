@@ -10,9 +10,11 @@
 #import "DetailViewController.h"
 #import "CFNEtworkController.h"
 
-@interface MasterViewController ()
+@interface MasterViewController () <UISearchBarDelegate, UISearchControllerDelegate, UISearchResultsUpdating>
 
-@property NSMutableArray *repo;
+@property (nonatomic, strong) NSMutableArray *repo;
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
+@property NSArray *searchResults;
 @end
 
 @implementation MasterViewController
@@ -20,16 +22,28 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-
-    UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(insertNewObject:)];
-    self.navigationItem.rightBarButtonItem = addButton;
     self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
-    
     CFNEtworkController *cfn = [CFNEtworkController new];
-    self.repo = [cfn getRepoForRequest:@"dishant"];
+    self.repo = [cfn getRepoForRequest:@"swift"];
+    self.searchBar.placeholder = self.navigationItem.title;
+    self.tableView.contentOffset = CGPointMake(0, self.searchBar.frame.size.height);
     self.tableView.reloadData;
 }
 
+-(void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
+{
+    [searchBar resignFirstResponder];
+    NSString *searchString = searchBar.text;
+    searchString = [searchString stringByReplacingOccurrencesOfString:@" " withString:@"%20"];
+    CFNEtworkController *cfn = [CFNEtworkController new];
+    self.repo = [cfn getRepoForRequest:searchString];
+    [self.tableView reloadData];
+}
+
+-(void)searchBarCancelButtonClicked:(UISearchBar *)searchBar
+{
+    [searchBar resignFirstResponder];
+}
 
 - (void)viewWillAppear:(BOOL)animated {
     self.clearsSelectionOnViewWillAppear = self.splitViewController.isCollapsed;
@@ -79,13 +93,15 @@
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
-
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
+    
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
+    }
     NSMutableDictionary *singleRepo = self.repo[indexPath.row];
     cell.textLabel.text = [singleRepo valueForKey:@"full_name"];
     return cell;
 }
-
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     // Return NO if you do not want the specified item to be editable.

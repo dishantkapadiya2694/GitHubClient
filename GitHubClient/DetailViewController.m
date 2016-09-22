@@ -23,6 +23,8 @@
     [self.webView loadRequest:request];
 }
 
+
+
 -(void)setWebView:(UIWebView *)webView
 {
     _webView = webView;
@@ -42,15 +44,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    if(!self.repo)
-    {
-        [self loadDefaults];
-    }
     [self configureView];
-}
-
-
--(void)loadDefaults{
+    
     
 }
 
